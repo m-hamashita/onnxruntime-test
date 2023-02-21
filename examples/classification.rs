@@ -3,7 +3,7 @@ use std::sync::Arc;
 use ndarray::{Array4, ArrayBase};
 use ort::{
     download::vision::ImageClassification::MobileNet,
-    tensor::{DynOrtTensor, FromArray, InputTensor, OrtOwnedTensor},
+    tensor::{ndarray_tensor::NdArrayTensor, DynOrtTensor, FromArray, InputTensor, OrtOwnedTensor},
     Environment, ExecutionProvider, GraphOptimizationLevel, OrtResult, SessionBuilder,
 };
 
@@ -16,10 +16,8 @@ fn argmax_1d(
 
     let mut max_index = 0;
     let mut max_value = -std::f32::INFINITY;
-    let mut sum_value = 0.0;
 
     for (i, &value) in array.iter().enumerate() {
-        sum_value += value.exp();
         if value > max_value {
             // println!("{}: {}", i, value);
             max_index = i;
@@ -28,7 +26,7 @@ fn argmax_1d(
     }
 
     // ついでに softmax している
-    Some((max_index, max_value.exp() / sum_value))
+    Some((max_index, max_value))
 }
 
 fn main() -> OrtResult<()> {
@@ -56,6 +54,7 @@ fn main() -> OrtResult<()> {
     let output_view = output.view().to_owned();
 
     // println!("{:?}", output_view);
+    let output_view = output_view.softmax(ndarray::Axis(1));
     let (argmax, max_value) = argmax_1d(&output_view).unwrap();
     println!("{}, {}", argmax, max_value);
 
