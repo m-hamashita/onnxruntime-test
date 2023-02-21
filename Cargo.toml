@@ -10,3 +10,6 @@ ndarray = "0.15.6"
 ort = "1.13.3"
 rand = "0.8.5"
 tokenizers = "0.13.2"
+
+[[example]]
+name = "gpt"
